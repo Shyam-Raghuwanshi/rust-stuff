@@ -1,0 +1,163 @@
+// use std::collections::HashSet;
+// use std::sync::{Arc, Mutex};
+// use reqwest::blocking::Client;
+// use select::document::Document;
+// use select::predicate::Name;
+// use url::Url;
+// use rayon::prelude::*;
+// use std::time::Instant;
+// fn main() -> Result<(), Box<dyn std::error::Error>> {
+//     let start = Instant::now();
+//     let base_url = "https://hono.dev";  // Replace with the website you want to scrape
+//     let base = Url::parse(base_url)?;
+
+//     let client = Client::new();
+//     let visited = Arc::new(Mutex::new(HashSet::new()));
+//     let to_visit = Arc::new(Mutex::new(vec![base_url.to_string()]));
+//     let all_links = Arc::new(Mutex::new(HashSet::new()));
+
+//     while !to_visit.lock().unwrap().is_empty() {
+//         let batch: Vec<String> = {
+//             let mut to_visit = to_visit.lock().unwrap();
+//             to_visit.drain(..).collect()
+//         };
+
+//         batch.par_iter().for_each(|url| {
+//             if visited.lock().unwrap().insert(url.to_string()) {
+//                 match scrape_page(&client, url, &base) {
+//                     Ok(links) => {
+//                         let mut all_links = all_links.lock().unwrap();
+//                         let mut to_visit = to_visit.lock().unwrap();
+//                         for link in links {
+//                             if !all_links.contains(&link) {
+//                                 all_links.insert(link.clone());
+//                                 to_visit.push(link);
+//                             }
+//                         }
+//                     }
+//                     Err(e) => eprintln!("Error scraping {}: {}", url, e),
+//                 }
+//             }
+//         });
+//     }
+
+//     println!("All internal links:");
+//     for link in all_links.lock().unwrap().iter() {
+//         println!("{}", link);
+//     }
+//     println!("time taken by this is: {:?}",start.elapsed());
+//     Ok(())
+// }
+
+// fn scrape_page(client: &Client, url: &str, base: &Url) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+//     let resp = client.get(url).send()?;
+//     let document = Document::from_read(resp)?;
+//     let mut links = Vec::new();
+
+//     for node in document.find(Name("a")) {
+//         if let Some(href) = node.attr("href") {
+//             if let Ok(full_url) = base.join(href) {
+//                 if full_url.as_str().starts_with(base.as_str()) {
+//                     links.push(full_url.into_string());
+//                 }
+//             }
+//         }
+//     }
+
+//     Ok(links)
+// }
+
+
+
+
+
+
+// https://cal.com/blog?search=workflow
+// All Links: 686 Time taken: 41.404162851s
+// use rayon::prelude::*;
+// use reqwest::blocking::Client;
+// use select::document::Document;
+// use select::predicate::Name;
+// use std::collections::HashSet;
+// use std::sync::{Arc, Mutex};
+// use std::time::Instant;
+// use url::Url;
+// // All Links: 3607 Time taken: 228.758935292s
+// fn main() -> Result<(), Box<dyn std::error::Error>> {
+//     let start = Instant::now();
+//     let base_url = "https://cal.com"; // Replace with the website you want to scrape
+//     let base = Url::parse(base_url)?;
+
+//     let client = Client::new();
+//     let visited = Arc::new(Mutex::new(HashSet::new()));
+//     let to_visit = Arc::new(Mutex::new(vec![base_url.to_string()]));
+//     let all_links = Arc::new(Mutex::new(HashSet::new()));
+
+//     while !to_visit.lock().unwrap().is_empty() {
+//         let batch: Vec<String> = {
+//             let mut to_visit = to_visit.lock().unwrap();
+//             to_visit.drain(..).collect()
+//         };
+
+//         batch.par_iter().for_each(|url| {
+//             if visited.lock().unwrap().insert(url.to_string()) {
+//                 match scrape_page(&client, url, &base) {
+//                     Ok(links) => {
+//                         let mut all_links = all_links.lock().unwrap();
+//                         let mut to_visit = to_visit.lock().unwrap();
+//                         for link in links {
+//                             if !all_links.contains(&link) && is_valid_link(&link) {
+//                                 all_links.insert(link.clone());
+//                                 to_visit.push(link);
+//                             }
+//                         }
+//                     }
+//                     Err(e) => eprintln!("Error scraping {}: {}", url, e),
+//                 }
+//             }
+//         });
+//     }
+
+//     println!("All internal links:");
+//     for link in all_links.clone().lock().unwrap().iter() {
+//         println!("{}", link);
+//     }
+//     println!(
+//         "All Links: {:?} Time taken: {:?}",
+//         all_links.lock().unwrap().len(),
+//         start.elapsed()
+//     );
+//     Ok(())
+// }
+
+// fn scrape_page(
+//     client: &Client,
+//     url: &str,
+//     base: &Url,
+// ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+//     let resp = client.get(url).send()?;
+//     let document = Document::from_read(resp)?;
+//     let mut links = Vec::new();
+
+//     for node in document.find(Name("a")) {
+//         if let Some(href) = node.attr("href") {
+//             if let Ok(full_url) = base.join(href) {
+//                 if full_url.as_str().starts_with(base.as_str()) {
+//                     links.push(full_url.into_string());
+//                 }
+//             }
+//         }
+//     }
+
+//     Ok(links)
+// }
+
+// fn is_valid_link(url: &str) -> bool {
+//     !url.contains('#')
+//         && !url.ends_with(".txt")
+//         && !url.ends_with(".zip")
+//         && !url.ends_with(".pdf")
+//         && !url.ends_with(".jpg")
+//         && !url.ends_with(".png")
+//         && !url.ends_with(".gif")
+// }
